@@ -25,6 +25,20 @@ WHITE = (255, 255, 255)
 TOLERANCE = 12
 PNG_COMPRESSION = 6
 
+# Rustige kleuren met voldoende contrast voor een goed leesbare interface.
+APP_BACKGROUND = "#EEF3F7"
+CARD_BACKGROUND = "#FFFFFF"
+HEADER_BACKGROUND = "#173B57"
+HEADER_SUBTITLE = "#DCE9F2"
+TEXT_COLOR = "#1F2933"
+MUTED_TEXT = "#52606D"
+PRIMARY_COLOR = "#26734D"
+PRIMARY_HOVER = "#1E5D3E"
+SECONDARY_COLOR = "#DCE7EF"
+SECONDARY_HOVER = "#C9D9E5"
+BORDER_COLOR = "#C7D5DF"
+PROGRESS_COLOR = "#2F80A7"
+
 # Formaten en marges
 FORMATS = {
     "wine": {
@@ -293,12 +307,12 @@ class ImageToolApp:
         )
 
         self.root.geometry(
-            "760x590"
+            "780x650"
         )
 
         self.root.minsize(
-            700,
-            560,
+            720,
+            620,
         )
 
         self.input_folder = tk.StringVar()
@@ -309,7 +323,7 @@ class ImageToolApp:
         )
 
         self.status_text = tk.StringVar(
-            value="Kies eerst een invoer- en uitvoermap."
+            value="Kies eerst de twee mappen en druk daarna op START."
         )
 
         self.progress_value = tk.DoubleVar(
@@ -326,7 +340,8 @@ class ImageToolApp:
         """
         outer = ttk.Frame(
             self.root,
-            padding=28,
+            padding=24,
+            style="App.TFrame",
         )
 
         outer.pack(
@@ -334,10 +349,21 @@ class ImageToolApp:
             expand=True,
         )
 
-        title = ttk.Label(
+        header = ttk.Frame(
             outer,
+            padding=(22, 18),
+            style="Header.TFrame",
+        )
+
+        header.pack(
+            fill="x",
+            pady=(0, 18),
+        )
+
+        title = ttk.Label(
+            header,
             text="Stigros productafbeeldingen",
-            font=("", 20, "bold"),
+            style="HeaderTitle.TLabel",
         )
 
         title.pack(
@@ -345,22 +371,24 @@ class ImageToolApp:
         )
 
         subtitle = ttk.Label(
-            outer,
+            header,
             text=(
                 "Maak productfoto’s automatisch "
                 "geschikt voor de website."
             ),
+            style="HeaderSubtitle.TLabel",
         )
 
         subtitle.pack(
             anchor="w",
-            pady=(6, 22),
+            pady=(5, 0),
         )
 
         format_frame = ttk.LabelFrame(
             outer,
             text="1. Kies het type product",
             padding=14,
+            style="Card.TLabelframe",
         )
 
         format_frame.pack(
@@ -373,6 +401,7 @@ class ImageToolApp:
                 text=settings["label"],
                 variable=self.selected_format,
                 value=key,
+                style="Card.TRadiobutton",
             ).pack(
                 anchor="w",
                 pady=6,
@@ -382,6 +411,7 @@ class ImageToolApp:
             outer,
             text="2. Kies de mappen",
             padding=14,
+            style="Card.TLabelframe",
         )
 
         folders_frame.pack(
@@ -398,6 +428,7 @@ class ImageToolApp:
             folders_frame,
             textvariable=self.input_folder,
             state="readonly",
+            style="Folder.TEntry",
         )
 
         self.input_entry.grid(
@@ -412,6 +443,7 @@ class ImageToolApp:
             folders_frame,
             text="Map met originele foto's kiezen",
             command=self.choose_input_folder,
+            style="Secondary.TButton",
         ).grid(
             row=0,
             column=1,
@@ -423,6 +455,7 @@ class ImageToolApp:
             folders_frame,
             textvariable=self.output_folder,
             state="readonly",
+            style="Folder.TEntry",
         )
 
         self.output_entry.grid(
@@ -437,6 +470,7 @@ class ImageToolApp:
             folders_frame,
             text="Map voor nieuwe foto's kiezen",
             command=self.choose_output_folder,
+            style="Secondary.TButton",
         ).grid(
             row=1,
             column=1,
@@ -448,6 +482,7 @@ class ImageToolApp:
             outer,
             text="3. START — afbeeldingen verwerken",
             command=self.start_processing,
+            style="Primary.TButton",
         )
 
         self.start_button.pack(
@@ -460,6 +495,7 @@ class ImageToolApp:
             variable=self.progress_value,
             maximum=100,
             mode="determinate",
+            style="Blue.Horizontal.TProgressbar",
         )
 
         self.progress_bar.pack(
@@ -483,6 +519,7 @@ class ImageToolApp:
             text="Map met nieuwe afbeeldingen openen",
             command=self.open_output_folder,
             state="disabled",
+            style="Secondary.TButton",
         )
 
         self.open_output_button.pack(
@@ -838,21 +875,17 @@ class ImageToolApp:
 
 def main() -> None:
     root = tk.Tk()
+    root.configure(
+        background=APP_BACKGROUND
+    )
 
     try:
         style = ttk.Style(root)
 
-        if (
-            "vista" in style.theme_names()
-            and sys.platform.startswith("win")
-        ):
-            style.theme_use("vista")
-
-        elif (
-            "aqua" in style.theme_names()
-            and sys.platform == "darwin"
-        ):
-            style.theme_use("aqua")
+        # Het clam-thema laat dezelfde rustige kleuren zien op Windows en
+        # macOS en houdt de bediening herkenbaar als standaardknoppen.
+        if "clam" in style.theme_names():
+            style.theme_use("clam")
 
     except tk.TclError:
         pass
@@ -860,11 +893,111 @@ def main() -> None:
     # Iets grotere tekst en ruimere knoppen maken de bestaande interface
     # prettiger leesbaar en bedienbaar, ook op een Windows-laptop.
     root.option_add("*Font", ("Segoe UI", 11))
-    style.configure(".", font=("Segoe UI", 11))
+    style.configure(
+        ".",
+        font=("Segoe UI", 11),
+        foreground=TEXT_COLOR,
+    )
+    style.configure(
+        "App.TFrame",
+        background=APP_BACKGROUND,
+    )
+    style.configure(
+        "Header.TFrame",
+        background=HEADER_BACKGROUND,
+    )
+    style.configure(
+        "HeaderTitle.TLabel",
+        background=HEADER_BACKGROUND,
+        foreground="white",
+        font=("Segoe UI", 21, "bold"),
+    )
+    style.configure(
+        "HeaderSubtitle.TLabel",
+        background=HEADER_BACKGROUND,
+        foreground=HEADER_SUBTITLE,
+        font=("Segoe UI", 11),
+    )
+    style.configure(
+        "Card.TLabelframe",
+        background=CARD_BACKGROUND,
+        bordercolor=BORDER_COLOR,
+        lightcolor=BORDER_COLOR,
+        darkcolor=BORDER_COLOR,
+        relief="solid",
+    )
+    style.configure(
+        "Card.TLabelframe.Label",
+        background=APP_BACKGROUND,
+        foreground=HEADER_BACKGROUND,
+        font=("Segoe UI", 12, "bold"),
+    )
+    style.configure(
+        "Card.TRadiobutton",
+        background=CARD_BACKGROUND,
+        foreground=TEXT_COLOR,
+        padding=(4, 4),
+    )
+    style.map(
+        "Card.TRadiobutton",
+        background=[("active", CARD_BACKGROUND)],
+    )
     style.configure("TButton", padding=(10, 8))
-    style.configure("TRadiobutton", padding=(2, 3))
-    style.configure("TProgressbar", thickness=18)
-    style.configure("Status.TLabel", font=("Segoe UI", 11, "bold"))
+    style.configure(
+        "Primary.TButton",
+        background=PRIMARY_COLOR,
+        foreground="white",
+        bordercolor=PRIMARY_COLOR,
+        font=("Segoe UI", 12, "bold"),
+        padding=(12, 11),
+    )
+    style.map(
+        "Primary.TButton",
+        background=[
+            ("disabled", "#A8B8AE"),
+            ("pressed", PRIMARY_HOVER),
+            ("active", PRIMARY_HOVER),
+        ],
+        foreground=[("disabled", "#F4F6F5")],
+    )
+    style.configure(
+        "Secondary.TButton",
+        background=SECONDARY_COLOR,
+        foreground=HEADER_BACKGROUND,
+        bordercolor=BORDER_COLOR,
+        font=("Segoe UI", 10, "bold"),
+    )
+    style.map(
+        "Secondary.TButton",
+        background=[
+            ("disabled", "#E5EAED"),
+            ("pressed", SECONDARY_HOVER),
+            ("active", SECONDARY_HOVER),
+        ],
+        foreground=[("disabled", "#89959E")],
+    )
+    style.configure(
+        "Folder.TEntry",
+        fieldbackground=CARD_BACKGROUND,
+        foreground=MUTED_TEXT,
+        bordercolor=BORDER_COLOR,
+        padding=8,
+    )
+    style.configure(
+        "Blue.Horizontal.TProgressbar",
+        background=PROGRESS_COLOR,
+        troughcolor="#D7E1E8",
+        bordercolor="#D7E1E8",
+        lightcolor=PROGRESS_COLOR,
+        darkcolor=PROGRESS_COLOR,
+        thickness=18,
+    )
+    style.configure(
+        "Status.TLabel",
+        background=APP_BACKGROUND,
+        foreground=MUTED_TEXT,
+        font=("Segoe UI", 11, "bold"),
+    )
 
     ImageToolApp(root)
 
