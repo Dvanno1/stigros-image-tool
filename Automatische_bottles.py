@@ -57,6 +57,34 @@ SUPPORTED_EXTENSIONS = {
 }
 
 
+def unique_destination(
+    output_folder: Path,
+    filename: str,
+) -> Path:
+    """
+    Geeft een vrije bestandsnaam terug zonder bestaande uitvoer te
+    overschrijven.
+    """
+    destination = output_folder / filename
+
+    if not destination.exists():
+        return destination
+
+    stem = destination.stem
+    suffix = destination.suffix
+    duplicate_number = 2
+
+    while True:
+        candidate = output_folder / (
+            f"{stem}_{duplicate_number}{suffix}"
+        )
+
+        if not candidate.exists():
+            return candidate
+
+        duplicate_number += 1
+
+
 def trim_transparent(image: Image.Image) -> Image.Image:
     """
     Snijdt transparante randen van een afbeelding af.
@@ -265,12 +293,12 @@ class ImageToolApp:
         )
 
         self.root.geometry(
-            "650x470"
+            "760x590"
         )
 
         self.root.minsize(
-            650,
-            470,
+            700,
+            560,
         )
 
         self.input_folder = tk.StringVar()
@@ -298,7 +326,7 @@ class ImageToolApp:
         """
         outer = ttk.Frame(
             self.root,
-            padding=24,
+            padding=28,
         )
 
         outer.pack(
@@ -326,7 +354,7 @@ class ImageToolApp:
 
         subtitle.pack(
             anchor="w",
-            pady=(4, 20),
+            pady=(6, 22),
         )
 
         format_frame = ttk.LabelFrame(
@@ -347,7 +375,7 @@ class ImageToolApp:
                 value=key,
             ).pack(
                 anchor="w",
-                pady=3,
+                pady=6,
             )
 
         folders_frame = ttk.LabelFrame(
@@ -377,18 +405,18 @@ class ImageToolApp:
             column=0,
             sticky="ew",
             padx=(0, 10),
-            pady=5,
+            pady=7,
         )
 
         ttk.Button(
             folders_frame,
-            text="Inputmap kiezen",
+            text="Map met originele foto's kiezen",
             command=self.choose_input_folder,
         ).grid(
             row=0,
             column=1,
             sticky="ew",
-            pady=5,
+            pady=7,
         )
 
         self.output_entry = ttk.Entry(
@@ -402,23 +430,23 @@ class ImageToolApp:
             column=0,
             sticky="ew",
             padx=(0, 10),
-            pady=5,
+            pady=7,
         )
 
         ttk.Button(
             folders_frame,
-            text="Outputmap kiezen",
+            text="Map voor nieuwe foto's kiezen",
             command=self.choose_output_folder,
         ).grid(
             row=1,
             column=1,
             sticky="ew",
-            pady=5,
+            pady=7,
         )
 
         self.start_button = ttk.Button(
             outer,
-            text="3. Afbeeldingen verwerken",
+            text="3. START — afbeeldingen verwerken",
             command=self.start_processing,
         )
 
@@ -436,20 +464,23 @@ class ImageToolApp:
 
         self.progress_bar.pack(
             fill="x",
-            pady=(18, 8),
+            pady=(20, 8),
         )
 
-        ttk.Label(
+        self.status_label = ttk.Label(
             outer,
             textvariable=self.status_text,
-            wraplength=590,
-        ).pack(
+            wraplength=680,
+            style="Status.TLabel",
+        )
+
+        self.status_label.pack(
             anchor="w"
         )
 
         self.open_output_button = ttk.Button(
             outer,
-            text="Outputmap openen",
+            text="Map met nieuwe afbeeldingen openen",
             command=self.open_output_folder,
             state="disabled",
         )
@@ -505,7 +536,10 @@ class ImageToolApp:
         if not input_text or not output_text:
             messagebox.showwarning(
                 "Mappen ontbreken",
-                "Kies eerst een inputmap en een outputmap.",
+                (
+                    "Kies eerst de map met de originele foto's "
+                    "en daarna de map voor de nieuwe foto's."
+                ),
             )
             return
 
@@ -514,8 +548,8 @@ class ImageToolApp:
 
         if not input_path.exists() or not input_path.is_dir():
             messagebox.showerror(
-                "Inputmap niet gevonden",
-                "De gekozen inputmap bestaat niet.",
+                "Map niet gevonden",
+                "De gekozen map met originele foto's bestaat niet.",
             )
             return
 
@@ -524,7 +558,7 @@ class ImageToolApp:
                 "Dezelfde map gekozen",
                 (
                     "Kies een andere outputmap, zodat originele "
-                    "bestanden niet worden overschreven."
+                    "foto's niet worden overschreven."
                 ),
             )
             return
@@ -647,19 +681,10 @@ class ImageToolApp:
                         str(settings["suffix"]),
                     )
 
-                    destination = output_path / filename
-
-                    duplicate_number = 2
-
-                    while destination.exists():
-                        base = destination.stem
-                        extension = destination.suffix
-
-                        destination = output_path / (
-                            f"{base}_{duplicate_number}{extension}"
-                        )
-
-                        duplicate_number += 1
+                    destination = unique_destination(
+                        output_path,
+                        filename,
+                    )
 
                     output_image.save(
                         destination,
@@ -745,8 +770,8 @@ class ImageToolApp:
 
         if fail_count == 0:
             text = (
-                f"Klaar — {ok_count} afbeeldingen "
-                "succesvol verwerkt."
+                f"KLAAR — {ok_count} afbeeldingen verwerkt. "
+                "U kunt nu de map met nieuwe afbeeldingen openen."
             )
 
             self.status_text.set(text)
@@ -831,6 +856,15 @@ def main() -> None:
 
     except tk.TclError:
         pass
+
+    # Iets grotere tekst en ruimere knoppen maken de bestaande interface
+    # prettiger leesbaar en bedienbaar, ook op een Windows-laptop.
+    root.option_add("*Font", ("Segoe UI", 11))
+    style.configure(".", font=("Segoe UI", 11))
+    style.configure("TButton", padding=(10, 8))
+    style.configure("TRadiobutton", padding=(2, 3))
+    style.configure("TProgressbar", thickness=18)
+    style.configure("Status.TLabel", font=("Segoe UI", 11, "bold"))
 
     ImageToolApp(root)
 

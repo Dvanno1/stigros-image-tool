@@ -1,0 +1,59 @@
+name: Bouw Windows-programma
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Windows 10 en 11 (64-bit)
+    runs-on: windows-2022
+    timeout-minutes: 20
+
+    steps:
+      - name: Repository ophalen
+        uses: actions/checkout@v6
+
+      - name: Python installeren
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          architecture: "x64"
+          cache: pip
+
+      - name: Benodigdheden installeren
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Syntax controleren
+        run: python -m py_compile Automatische_bottles.py
+
+      - name: Windows-programma bouwen
+        run: >-
+          pyinstaller
+          --noconfirm
+          --clean
+          --onefile
+          --windowed
+          --name Stigros-Afbeeldingen
+          --collect-all pillow_avif
+          Automatische_bottles.py
+
+      - name: Gebouwd programma controleren
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "dist/Stigros-Afbeeldingen.exe")) {
+            throw "Stigros-Afbeeldingen.exe is niet gebouwd."
+          }
+
+      - name: Windows-programma uploaden
+        uses: actions/upload-artifact@v4
+        with:
+          name: Stigros-Afbeeldingen-Windows-64-bit
+          path: dist/Stigros-Afbeeldingen.exe
+          if-no-files-found: error
+          retention-days: 30
