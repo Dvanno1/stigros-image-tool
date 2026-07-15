@@ -38,6 +38,14 @@ De Windows-versie wordt automatisch gebouwd met GitHub Actions voor 64-bits Wind
 
 Windows SmartScreen kan waarschuwen dat het programma van een onbekende uitgever komt. Dat gebeurt omdat het `.exe`-bestand niet digitaal is ondertekend. Controleer dat het bestand uit de GitHub Actions-build van deze repository komt. Kies daarna zo nodig **Meer informatie** en **Toch uitvoeren**.
 
+## Controleren op updates
+
+Bij het starten controleert het programma op de achtergrond of er een nieuwere openbare GitHub Release beschikbaar is. De bediening blijft tijdens deze korte controle gewoon werken. Zonder internetverbinding werkt het programma volledig door en verschijnt er geen foutmelding.
+
+Als er een nieuwere versie is, vraagt het programma of de downloadpagina geopend mag worden. Na **Ja** wordt de pagina met de [nieuwste GitHub Release](https://github.com/Dvanno1/stigros-image-tool/releases/latest) in de standaardbrowser geopend. Het programma downloadt of installeert een update nooit automatisch en vervangt het actieve `.exe`-bestand niet.
+
 ## Zelf bouwen
 
 De build gebruikt Python 3.11, PyInstaller en de vastgelegde versies uit `requirements.txt`. Start op GitHub de workflow handmatig via **Actions**, **Bouw Windows-programma**, **Run workflow**. De workflow draait op `windows-2022` en neemt de AVIF-ondersteuning mee in één vensterprogramma zonder apart Python-venster.
+
+Verhoog voor iedere nieuwe publicatie eerst `APP_VERSION` bovenaan in `Automatische_bottles.py`. Gebruik daarna bij de handmatige workflow dezelfde versie met een `v` ervoor als Release-tag. Bij `APP_VERSION = "1.1.0"` hoort bijvoorbeeld Release-tag `v1.1.0`.

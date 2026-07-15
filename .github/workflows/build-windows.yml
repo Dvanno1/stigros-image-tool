@@ -37,6 +37,9 @@ jobs:
       - name: Syntax controleren
         run: python -m py_compile Automatische_bottles.py
 
+      - name: Tests uitvoeren
+        run: python -m unittest discover -s tests -v
+
       - name: Windows-programma bouwen
         run: >-
           pyinstaller

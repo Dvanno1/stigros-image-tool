@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import json
 import os
+import queue
+import re
 import sys
 import threading
 import subprocess
+import urllib.request
+import webbrowser
 from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
@@ -20,6 +25,17 @@ try:
 except ImportError:
     AVIF_AVAILABLE = False
 
+
+APP_VERSION = "1.1.0"
+GITHUB_RELEASE_API_URL = (
+    "https://api.github.com/repos/"
+    "Dvanno1/stigros-image-tool/releases/latest"
+)
+GITHUB_RELEASE_PAGE_URL = (
+    "https://github.com/Dvanno1/"
+    "stigros-image-tool/releases/latest"
+)
+UPDATE_TIMEOUT_SECONDS = 4
 
 WHITE = (255, 255, 255)
 TOLERANCE = 12
@@ -69,6 +85,158 @@ SUPPORTED_EXTENSIONS = {
     ".psd",
     ".avif",
 }
+
+SEMANTIC_VERSION_PATTERN = re.compile(
+    r"^[vV]?(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)"
+    r"(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+)
+
+SemanticVersion = tuple[
+    int,
+    int,
+    int,
+    tuple[str, ...],
+]
+
+
+def parse_semantic_version(
+    value: object,
+) -> SemanticVersion | None:
+    """
+    Leest een SemVer-versie, met een optionele v voor Git-tags.
+    Ongeldige of ontbrekende waarden leveren None op.
+    """
+    if not isinstance(value, str):
+        return None
+
+    match = SEMANTIC_VERSION_PATTERN.fullmatch(
+        value.strip()
+    )
+
+    if match is None:
+        return None
+
+    prerelease_text = match.group(4)
+    prerelease = (
+        tuple(prerelease_text.split("."))
+        if prerelease_text
+        else ()
+    )
+
+    # Numerieke SemVer-identifiers mogen geen voorloopnul hebben.
+    if any(
+        identifier.isdigit()
+        and len(identifier) > 1
+        and identifier.startswith("0")
+        for identifier in prerelease
+    ):
+        return None
+
+    return (
+        int(match.group(1)),
+        int(match.group(2)),
+        int(match.group(3)),
+        prerelease,
+    )
+
+
+def compare_prerelease(
+    left: tuple[str, ...],
+    right: tuple[str, ...],
+) -> int:
+    """
+    Vergelijkt twee geldige SemVer-prerelease-delen.
+    """
+    if left == right:
+        return 0
+
+    if not left:
+        return 1
+
+    if not right:
+        return -1
+
+    for left_part, right_part in zip(left, right):
+        if left_part == right_part:
+            continue
+
+        left_is_number = left_part.isdigit()
+        right_is_number = right_part.isdigit()
+
+        if left_is_number and right_is_number:
+            return (
+                1
+                if int(left_part) > int(right_part)
+                else -1
+            )
+
+        if left_is_number:
+            return -1
+
+        if right_is_number:
+            return 1
+
+        return 1 if left_part > right_part else -1
+
+    return 1 if len(left) > len(right) else -1
+
+
+def is_newer_version(
+    current_version: object,
+    latest_version: object,
+) -> bool:
+    """
+    Geeft alleen True terug als beide versies geldig zijn en de laatste
+    versie volgens Semantic Versioning nieuwer is.
+    """
+    current = parse_semantic_version(current_version)
+    latest = parse_semantic_version(latest_version)
+
+    if current is None or latest is None:
+        return False
+
+    current_numbers = current[:3]
+    latest_numbers = latest[:3]
+
+    if current_numbers != latest_numbers:
+        return latest_numbers > current_numbers
+
+    return compare_prerelease(
+        latest[3],
+        current[3],
+    ) > 0
+
+
+def fetch_latest_release_version() -> str | None:
+    """
+    Haalt de nieuwste openbare GitHub Release-tag op.
+    Netwerkfouten worden afgehandeld door de aanroepende achtergrondtaak.
+    """
+    request = urllib.request.Request(
+        GITHUB_RELEASE_API_URL,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": (
+                f"Stigros-Afbeeldingen/{APP_VERSION}"
+            ),
+        },
+    )
+
+    with urllib.request.urlopen(
+        request,
+        timeout=UPDATE_TIMEOUT_SECONDS,
+    ) as response:
+        data = json.load(response)
+
+    if not isinstance(data, dict):
+        return None
+
+    tag_name = data.get("tag_name")
+
+    return tag_name if isinstance(tag_name, str) else None
 
 
 def unique_destination(
@@ -333,6 +501,7 @@ class ImageToolApp:
         self.is_processing = False
 
         self.build_interface()
+        self.start_update_check()
 
     def build_interface(self) -> None:
         """
@@ -514,8 +683,27 @@ class ImageToolApp:
             anchor="w"
         )
 
-        self.open_output_button = ttk.Button(
+        footer = ttk.Frame(
             outer,
+            style="App.TFrame",
+        )
+
+        footer.pack(
+            fill="x",
+            pady=(16, 0),
+        )
+
+        ttk.Label(
+            footer,
+            text=f"Versie {APP_VERSION}",
+            style="Version.TLabel",
+        ).pack(
+            side="left",
+            anchor="s",
+        )
+
+        self.open_output_button = ttk.Button(
+            footer,
             text="Map met nieuwe afbeeldingen openen",
             command=self.open_output_folder,
             state="disabled",
@@ -523,9 +711,96 @@ class ImageToolApp:
         )
 
         self.open_output_button.pack(
+            side="right",
             anchor="e",
-            pady=(16, 0),
         )
+
+    def start_update_check(self) -> None:
+        """
+        Start de updatecontrole zonder de interface te blokkeren.
+        """
+        self.update_result: queue.Queue[str | None] = (
+            queue.Queue(maxsize=1)
+        )
+
+        thread = threading.Thread(
+            target=self.check_for_update_in_background,
+            name="stigros-update-check",
+            daemon=True,
+        )
+        thread.start()
+
+        self.root.after(
+            200,
+            self.poll_update_result,
+        )
+
+    def check_for_update_in_background(self) -> None:
+        """
+        Haalt de Release-tag op. Iedere fout betekent stil doorgaan.
+        """
+        latest_version = None
+
+        try:
+            latest_version = fetch_latest_release_version()
+        except Exception:
+            # Offline werken blijft altijd mogelijk. Netwerk-, timeout- en
+            # API-fouten zijn daarom bewust niet zichtbaar voor de gebruiker.
+            pass
+
+        self.update_result.put(latest_version)
+
+    def poll_update_result(self) -> None:
+        """
+        Leest het resultaat veilig vanuit de Tkinter-hoofdthread.
+        """
+        try:
+            latest_version = self.update_result.get_nowait()
+        except queue.Empty:
+            self.root.after(
+                200,
+                self.poll_update_result,
+            )
+            return
+
+        if is_newer_version(
+            APP_VERSION,
+            latest_version,
+        ):
+            self.show_update_dialog(
+                str(latest_version)
+            )
+
+    def show_update_dialog(
+        self,
+        latest_version: str,
+    ) -> None:
+        """
+        Vraagt of de gebruiker de openbare downloadpagina wil openen.
+        """
+        display_version = latest_version.removeprefix(
+            "v"
+        ).removeprefix("V")
+
+        open_download_page = messagebox.askyesno(
+            "Nieuwe versie beschikbaar",
+            (
+                "Er is een nieuwe versie van Stigros Afbeeldingen "
+                "beschikbaar.\n\n"
+                f"Huidige versie: {APP_VERSION}\n"
+                f"Nieuwe versie: {display_version}\n\n"
+                "Wilt u de downloadpagina openen?"
+            ),
+            parent=self.root,
+        )
+
+        if open_download_page:
+            try:
+                webbrowser.open(
+                    GITHUB_RELEASE_PAGE_URL
+                )
+            except Exception:
+                pass
 
     def choose_input_folder(self) -> None:
         """
@@ -997,6 +1272,12 @@ def main() -> None:
         background=APP_BACKGROUND,
         foreground=MUTED_TEXT,
         font=("Segoe UI", 11, "bold"),
+    )
+    style.configure(
+        "Version.TLabel",
+        background=APP_BACKGROUND,
+        foreground="#75838E",
+        font=("Segoe UI", 9),
     )
 
     ImageToolApp(root)
