@@ -26,7 +26,7 @@ except ImportError:
     AVIF_AVAILABLE = False
 
 
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.2.0"
 GITHUB_RELEASE_API_URL = (
     "https://api.github.com/repos/"
     "Dvanno1/stigros-image-tool/releases/latest"
@@ -576,12 +576,12 @@ class ImageToolApp:
         )
 
         self.root.geometry(
-            "780x650"
+            "960x700"
         )
 
         self.root.minsize(
-            720,
-            620,
+            900,
+            680,
         )
 
         self.input_folder = tk.StringVar()
@@ -612,10 +612,9 @@ class ImageToolApp:
         """
         Bouwt de gebruikersinterface.
         """
-        outer = ttk.Frame(
+        outer = tk.Frame(
             self.root,
-            padding=24,
-            style="App.TFrame",
+            background=APP_BACKGROUND,
         )
 
         outer.pack(
@@ -623,81 +622,180 @@ class ImageToolApp:
             expand=True,
         )
 
-        header = ttk.Frame(
+        # De vaste werkbreedte voorkomt dat velden en knoppen onnatuurlijk
+        # uitrekken wanneer het venster wordt gemaximaliseerd.
+        content = tk.Frame(
             outer,
-            padding=(22, 18),
-            style="Header.TFrame",
+            width=880,
+            height=640,
+            background=APP_BACKGROUND,
         )
 
-        header.pack(
-            fill="x",
-            pady=(0, 18),
+        content.pack(
+            anchor="n",
+            pady=20,
         )
+        content.pack_propagate(False)
 
-        title = ttk.Label(
+        header = tk.Frame(
+            content,
+            background=HEADER_BACKGROUND,
+            padx=24,
+            pady=18,
+        )
+        header.pack(fill="x")
+        header.columnconfigure(0, weight=1)
+
+        title = tk.Label(
             header,
             text="Stigros productafbeeldingen",
-            style="HeaderTitle.TLabel",
+            background=HEADER_BACKGROUND,
+            foreground="white",
+            font=("Segoe UI", 20, "bold"),
+        )
+        title.grid(
+            row=0,
+            column=0,
+            sticky="w",
         )
 
-        title.pack(
-            anchor="w"
-        )
-
-        subtitle = ttk.Label(
+        subtitle = tk.Label(
             header,
             text=(
-                "Maak productfoto’s automatisch "
+                "Maak productfoto’s in drie eenvoudige stappen "
                 "geschikt voor de website."
             ),
-            style="HeaderSubtitle.TLabel",
+            background=HEADER_BACKGROUND,
+            foreground=HEADER_SUBTITLE,
+            font=("Segoe UI", 11),
         )
-
-        subtitle.pack(
-            anchor="w",
+        subtitle.grid(
+            row=1,
+            column=0,
+            sticky="w",
             pady=(5, 0),
         )
 
-        format_frame = ttk.LabelFrame(
-            outer,
-            text="1. Kies het type product",
-            padding=14,
-            style="Card.TLabelframe",
+        logo = getattr(
+            self.root,
+            "stigros_icon",
+            None,
         )
 
-        format_frame.pack(
-            fill="x"
+        if logo is not None:
+            tk.Label(
+                header,
+                image=logo,
+                background=HEADER_BACKGROUND,
+                borderwidth=0,
+            ).grid(
+                row=0,
+                column=1,
+                rowspan=2,
+                padx=(20, 0),
+            )
+
+        def create_step_card(
+            number: str,
+            title_text: str,
+        ) -> tk.Frame:
+            card = tk.Frame(
+                content,
+                background=CARD_BACKGROUND,
+                highlightbackground=BORDER_COLOR,
+                highlightthickness=1,
+                padx=18,
+                pady=14,
+            )
+            card.pack(
+                fill="x",
+                pady=(14, 0),
+            )
+
+            heading = tk.Frame(
+                card,
+                background=CARD_BACKGROUND,
+            )
+            heading.pack(fill="x")
+
+            tk.Label(
+                heading,
+                text=number,
+                width=2,
+                height=1,
+                background=HEADER_BACKGROUND,
+                foreground="white",
+                font=("Segoe UI", 11, "bold"),
+            ).pack(side="left")
+
+            tk.Label(
+                heading,
+                text=title_text,
+                background=CARD_BACKGROUND,
+                foreground=HEADER_BACKGROUND,
+                font=("Segoe UI", 12, "bold"),
+            ).pack(
+                side="left",
+                padx=(10, 0),
+            )
+
+            body = tk.Frame(
+                card,
+                background=CARD_BACKGROUND,
+            )
+            body.pack(
+                fill="x",
+                pady=(10, 0),
+            )
+
+            return body
+
+        format_frame = create_step_card(
+            "1",
+            "Kies product en uitvoerformaat",
         )
+
+        product_choices = tk.Frame(
+            format_frame,
+            background=CARD_BACKGROUND,
+        )
+        product_choices.pack(fill="x")
 
         for key, settings in FORMATS.items():
             ttk.Radiobutton(
-                format_frame,
+                product_choices,
                 text=settings["label"],
                 variable=self.selected_format,
                 value=key,
                 style="Card.TRadiobutton",
             ).pack(
-                anchor="w",
-                pady=6,
+                side="left",
+                padx=(0, 34),
             )
 
-        output_format_frame = ttk.Frame(
+        ttk.Separator(
             format_frame,
-            style="Card.TFrame",
-        )
-
-        output_format_frame.pack(
+            orient="horizontal",
+        ).pack(
             fill="x",
-            pady=(8, 0),
+            pady=10,
         )
 
-        ttk.Label(
+        output_format_frame = tk.Frame(
+            format_frame,
+            background=CARD_BACKGROUND,
+        )
+        output_format_frame.pack(fill="x")
+
+        tk.Label(
             output_format_frame,
             text="Uitvoerformaat:",
-            style="CardLabel.TLabel",
+            background=CARD_BACKGROUND,
+            foreground=MUTED_TEXT,
+            font=("Segoe UI", 10, "bold"),
         ).pack(
             side="left",
-            padx=(4, 14),
+            padx=(0, 16),
         )
 
         for key, settings in OUTPUT_FORMATS.items():
@@ -709,24 +807,27 @@ class ImageToolApp:
                 style="Card.TRadiobutton",
             ).pack(
                 side="left",
-                padx=(0, 14),
+                padx=(0, 18),
             )
 
-        folders_frame = ttk.LabelFrame(
-            outer,
-            text="2. Kies de mappen",
-            padding=14,
-            style="Card.TLabelframe",
+        folders_frame = create_step_card(
+            "2",
+            "Kies de mappen",
         )
 
-        folders_frame.pack(
-            fill="x",
-            pady=14,
-        )
+        folders_frame.columnconfigure(0, weight=1)
 
-        folders_frame.columnconfigure(
-            0,
-            weight=1,
+        tk.Label(
+            folders_frame,
+            text="Originele productfoto’s",
+            background=CARD_BACKGROUND,
+            foreground=MUTED_TEXT,
+            font=("Segoe UI", 10, "bold"),
+        ).grid(
+            row=0,
+            column=0,
+            columnspan=2,
+            sticky="w",
         )
 
         self.input_entry = ttk.Entry(
@@ -737,23 +838,36 @@ class ImageToolApp:
         )
 
         self.input_entry.grid(
-            row=0,
+            row=1,
             column=0,
             sticky="ew",
-            padx=(0, 10),
-            pady=7,
+            padx=(0, 12),
+            pady=(5, 10),
         )
 
         ttk.Button(
             folders_frame,
-            text="Map met originele foto's kiezen",
+            text="Bladeren…",
             command=self.choose_input_folder,
             style="Secondary.TButton",
         ).grid(
-            row=0,
+            row=1,
             column=1,
             sticky="ew",
-            pady=7,
+            pady=(5, 10),
+        )
+
+        tk.Label(
+            folders_frame,
+            text="Map voor de nieuwe afbeeldingen",
+            background=CARD_BACKGROUND,
+            foreground=MUTED_TEXT,
+            font=("Segoe UI", 10, "bold"),
+        ).grid(
+            row=2,
+            column=0,
+            columnspan=2,
+            sticky="w",
         )
 
         self.output_entry = ttk.Entry(
@@ -764,39 +878,39 @@ class ImageToolApp:
         )
 
         self.output_entry.grid(
-            row=1,
+            row=3,
             column=0,
             sticky="ew",
-            padx=(0, 10),
-            pady=7,
+            padx=(0, 12),
+            pady=(5, 0),
         )
 
         ttk.Button(
             folders_frame,
-            text="Map voor nieuwe foto's kiezen",
+            text="Bladeren…",
             command=self.choose_output_folder,
             style="Secondary.TButton",
         ).grid(
-            row=1,
+            row=3,
             column=1,
             sticky="ew",
-            pady=7,
+            pady=(5, 0),
         )
 
         self.start_button = ttk.Button(
-            outer,
-            text="3. START — afbeeldingen verwerken",
+            content,
+            text="3   AFBEELDINGEN VERWERKEN",
             command=self.start_processing,
             style="Primary.TButton",
         )
 
         self.start_button.pack(
             fill="x",
-            ipady=8,
+            pady=(14, 0),
         )
 
         self.progress_bar = ttk.Progressbar(
-            outer,
+            content,
             variable=self.progress_value,
             maximum=100,
             mode="determinate",
@@ -805,42 +919,32 @@ class ImageToolApp:
 
         self.progress_bar.pack(
             fill="x",
-            pady=(20, 8),
+            pady=(16, 8),
         )
 
+        status_row = tk.Frame(
+            content,
+            background=APP_BACKGROUND,
+        )
+        status_row.pack(fill="x")
+
         self.status_label = ttk.Label(
-            outer,
+            status_row,
             textvariable=self.status_text,
-            wraplength=680,
+            wraplength=570,
             style="Status.TLabel",
         )
 
         self.status_label.pack(
-            anchor="w"
-        )
-
-        footer = ttk.Frame(
-            outer,
-            style="App.TFrame",
-        )
-
-        footer.pack(
-            fill="x",
-            pady=(16, 0),
-        )
-
-        ttk.Label(
-            footer,
-            text=f"Versie {APP_VERSION}",
-            style="Version.TLabel",
-        ).pack(
             side="left",
-            anchor="s",
+            anchor="w",
+            fill="x",
+            expand=True,
         )
 
         self.open_output_button = ttk.Button(
-            footer,
-            text="Map met nieuwe afbeeldingen openen",
+            status_row,
+            text="Resultaten openen",
             command=self.open_output_folder,
             state="disabled",
             style="Secondary.TButton",
@@ -849,6 +953,15 @@ class ImageToolApp:
         self.open_output_button.pack(
             side="right",
             anchor="e",
+        )
+
+        ttk.Label(
+            content,
+            text=f"Stigros Afbeeldingen  •  versie {APP_VERSION}",
+            style="Version.TLabel",
+        ).pack(
+            anchor="e",
+            pady=(9, 0),
         )
 
     def start_update_check(self) -> None:
@@ -1315,40 +1428,6 @@ def main() -> None:
         foreground=TEXT_COLOR,
     )
     style.configure(
-        "App.TFrame",
-        background=APP_BACKGROUND,
-    )
-    style.configure(
-        "Header.TFrame",
-        background=HEADER_BACKGROUND,
-    )
-    style.configure(
-        "HeaderTitle.TLabel",
-        background=HEADER_BACKGROUND,
-        foreground="white",
-        font=("Segoe UI", 21, "bold"),
-    )
-    style.configure(
-        "HeaderSubtitle.TLabel",
-        background=HEADER_BACKGROUND,
-        foreground=HEADER_SUBTITLE,
-        font=("Segoe UI", 11),
-    )
-    style.configure(
-        "Card.TLabelframe",
-        background=CARD_BACKGROUND,
-        bordercolor=BORDER_COLOR,
-        lightcolor=BORDER_COLOR,
-        darkcolor=BORDER_COLOR,
-        relief="solid",
-    )
-    style.configure(
-        "Card.TLabelframe.Label",
-        background=APP_BACKGROUND,
-        foreground=HEADER_BACKGROUND,
-        font=("Segoe UI", 12, "bold"),
-    )
-    style.configure(
         "Card.TRadiobutton",
         background=CARD_BACKGROUND,
         foreground=TEXT_COLOR,
@@ -1357,16 +1436,6 @@ def main() -> None:
     style.map(
         "Card.TRadiobutton",
         background=[("active", CARD_BACKGROUND)],
-    )
-    style.configure(
-        "Card.TFrame",
-        background=CARD_BACKGROUND,
-    )
-    style.configure(
-        "CardLabel.TLabel",
-        background=CARD_BACKGROUND,
-        foreground=HEADER_BACKGROUND,
-        font=("Segoe UI", 11, "bold"),
     )
     style.configure("TButton", padding=(10, 8))
     style.configure(
