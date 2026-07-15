@@ -36,14 +36,21 @@ class OutputFormatTests(unittest.TestCase):
                 source,
                 output_suffix("wine", "png"),
             ),
-            "product_500x500.png",
+            "product_115x180.png",
         )
         self.assertEqual(
             output_filename(
                 source,
                 output_suffix("wine", "jpg"),
             ),
-            "product_500x500.jpg",
+            "product_115x180.jpg",
+        )
+        self.assertEqual(
+            output_filename(
+                source,
+                output_suffix("beer", "png"),
+            ),
+            "product_115x180.png",
         )
 
     def test_product_uses_configured_canvas_fill(self) -> None:

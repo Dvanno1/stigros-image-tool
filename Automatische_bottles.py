@@ -26,7 +26,9 @@ except ImportError:
     AVIF_AVAILABLE = False
 
 
-APP_VERSION = "1.3.0"
+APP_VERSION = "1.0.0"
+APP_EDITION = "Portret"
+UPDATE_CHECK_ENABLED = False
 GITHUB_RELEASE_API_URL = (
     "https://api.github.com/repos/"
     "Dvanno1/stigros-image-tool/releases/latest"
@@ -39,7 +41,7 @@ UPDATE_TIMEOUT_SECONDS = 4
 
 WHITE = (255, 255, 255)
 TOLERANCE = 12
-TARGET_FILL = 0.94
+TARGET_FILL = 0.75
 PNG_COMPRESSION = 6
 JPG_QUALITY = 92
 
@@ -60,16 +62,16 @@ PROGRESS_COLOR = "#2F80A7"
 # Formaten en marges
 FORMATS = {
     "wine": {
-        "label": "Wijn / gedistilleerd — 500 × 500",
-        "width": 500,
-        "height": 500,
-        "size_suffix": "_500x500",
+        "label": "Wijn / gedistilleerd — 115 × 180",
+        "width": 115,
+        "height": 180,
+        "size_suffix": "_115x180",
     },
     "beer": {
-        "label": "Bier — 332 × 424",
-        "width": 332,
-        "height": 424,
-        "size_suffix": "_332x424",
+        "label": "Bier — 115 × 180",
+        "width": 115,
+        "height": 180,
+        "size_suffix": "_115x180",
     },
 }
 
@@ -580,7 +582,7 @@ class ImageToolApp:
         self.root = root
 
         self.root.title(
-            "Stigros afbeeldingen"
+            "Stigros afbeeldingen — Portret"
         )
 
         self.root.geometry(
@@ -614,7 +616,9 @@ class ImageToolApp:
         self.is_processing = False
 
         self.build_interface()
-        self.start_update_check()
+
+        if UPDATE_CHECK_ENABLED:
+            self.start_update_check()
 
     def build_interface(self) -> None:
         """
@@ -656,7 +660,7 @@ class ImageToolApp:
 
         title = tk.Label(
             header,
-            text="Stigros productafbeeldingen",
+            text="Stigros productafbeeldingen — Portret",
             background=HEADER_BACKGROUND,
             foreground="white",
             font=("Segoe UI", 20, "bold"),
@@ -965,7 +969,10 @@ class ImageToolApp:
 
         ttk.Label(
             content,
-            text=f"Stigros Afbeeldingen  •  versie {APP_VERSION}",
+            text=(
+                f"Stigros Afbeeldingen {APP_EDITION}"
+                f"  •  versie {APP_VERSION}"
+            ),
             style="Version.TLabel",
         ).pack(
             anchor="e",
