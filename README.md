@@ -1,6 +1,6 @@
 # Stigros Afbeeldingen
 
-Dit programma maakt productafbeeldingen automatisch passend voor de website. De originele foto's blijven ongewijzigd. De nieuwe afbeeldingen worden altijd als PNG-bestand opgeslagen, met de juiste beeldverhouding en een witte achtergrond.
+Dit programma maakt productafbeeldingen automatisch passend voor de website. De originele foto's blijven ongewijzigd. De nieuwe afbeeldingen worden als PNG- of JPG-bestand opgeslagen, met de juiste beeldverhouding en een witte achtergrond.
 
 Het programma ondersteunt JPG, JPEG, PNG, WebP en AVIF. Een beschadigd bestand wordt overgeslagen; de andere afbeeldingen worden gewoon verder verwerkt.
 
@@ -10,11 +10,12 @@ Het programma ondersteunt JPG, JPEG, PNG, WebP en AVIF. Een beschadigd bestand w
 2. Kies het soort product:
    - **Wijn / gedistilleerd — 500 × 500** voor een vierkante afbeelding.
    - **Bier — 332 × 424** voor een hogere, rechthoekige afbeelding.
-3. Klik op **Map met originele foto's kiezen** en kies de map waar de bronfoto's staan.
-4. Klik op **Map voor nieuwe foto's kiezen** en kies een andere map voor het resultaat.
-5. Klik op **START — afbeeldingen verwerken**.
-6. Wacht tot de voortgangsbalk vol is en de melding **KLAAR** verschijnt.
-7. Klik op **Map met nieuwe afbeeldingen openen** om het resultaat te bekijken.
+3. Kies bij **Uitvoerformaat** voor **PNG** of **JPG**. PNG is de standaardkeuze.
+4. Klik op **Map met originele foto's kiezen** en kies de map waar de bronfoto's staan.
+5. Klik op **Map voor nieuwe foto's kiezen** en kies een andere map voor het resultaat.
+6. Klik op **START — afbeeldingen verwerken**.
+7. Wacht tot de voortgangsbalk vol is en de melding **KLAAR** verschijnt.
+8. Klik op **Map met nieuwe afbeeldingen openen** om het resultaat te bekijken.
 
 Het programma zoekt ook in onderliggende mappen. Als de gekozen uitvoermap binnen de invoermap staat, wordt die uitvoermap overgeslagen. Bestaande bestanden worden niet overschreven: bij een dubbele naam voegt het programma automatisch `_2`, `_3` enzovoort toe.
 
@@ -24,6 +25,13 @@ Het programma zoekt ook in onderliggende mappen. Als de gekozen uitvoermap binne
 - **332 × 424 pixels** is bedoeld voor bier. Dit formaat is hoger dan het breed is.
 
 De productfoto wordt nooit uitgerekt. Het programma houdt de oorspronkelijke verhouding intact en vult de overgebleven ruimte met wit.
+
+## Welk uitvoerformaat moet ik kiezen?
+
+- **PNG** geeft de maximale beeldkwaliteit en ondersteunt transparantie. Het programma gebruikt voor productafbeeldingen altijd een witte achtergrond. PNG-bestanden zijn meestal groter.
+- **JPG** geeft kleinere bestanden en is daardoor handig voor websites. JPG ondersteunt geen transparantie en gebruikt hier een hoge kwaliteit van 92%.
+
+De bestandsnaam bevat altijd de gekozen afmetingen en extensie, bijvoorbeeld `product_500x500.png` of `product_500x500.jpg`.
 
 ## De Windows-versie downloaden
 

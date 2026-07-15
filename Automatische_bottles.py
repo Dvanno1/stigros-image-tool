@@ -40,6 +40,7 @@ UPDATE_TIMEOUT_SECONDS = 4
 WHITE = (255, 255, 255)
 TOLERANCE = 12
 PNG_COMPRESSION = 6
+JPG_QUALITY = 92
 
 # Rustige kleuren met voldoende contrast voor een goed leesbare interface.
 APP_BACKGROUND = "#EEF3F7"
@@ -62,14 +63,27 @@ FORMATS = {
         "width": 500,
         "height": 500,
         "margin": 55,
-        "suffix": "_500x500.png",
+        "size_suffix": "_500x500",
     },
     "beer": {
         "label": "Bier — 332 × 424",
         "width": 332,
         "height": 424,
         "margin": 35,
-        "suffix": "_332x424.png",
+        "size_suffix": "_332x424",
+    },
+}
+
+OUTPUT_FORMATS = {
+    "png": {
+        "label": "PNG",
+        "extension": ".png",
+        "pillow_format": "PNG",
+    },
+    "jpg": {
+        "label": "JPG",
+        "extension": ".jpg",
+        "pillow_format": "JPEG",
     },
 }
 
@@ -265,6 +279,54 @@ def unique_destination(
             return candidate
 
         duplicate_number += 1
+
+
+def output_suffix(
+    product_format_key: str,
+    output_format_key: str,
+) -> str:
+    """
+    Maakt de uitvoersuffix uit het gekozen formaat en de afmetingen.
+    """
+    product_settings = FORMATS[product_format_key]
+    output_settings = OUTPUT_FORMATS[output_format_key]
+
+    return (
+        str(product_settings["size_suffix"])
+        + str(output_settings["extension"])
+    )
+
+
+def save_output_image(
+    image: Image.Image,
+    destination: Path,
+    output_format_key: str,
+) -> None:
+    """
+    Slaat een verwerkte afbeelding met de juiste formaatopties op.
+    """
+    if output_format_key == "png":
+        image.save(
+            destination,
+            format="PNG",
+            optimize=True,
+            compress_level=PNG_COMPRESSION,
+        )
+        return
+
+    if output_format_key == "jpg":
+        image.convert("RGB").save(
+            destination,
+            format="JPEG",
+            quality=JPG_QUALITY,
+            optimize=True,
+            progressive=True,
+        )
+        return
+
+    raise ValueError(
+        f"Onbekend uitvoerformaat: {output_format_key}"
+    )
 
 
 def trim_transparent(image: Image.Image) -> Image.Image:
@@ -490,6 +552,10 @@ class ImageToolApp:
             value="wine"
         )
 
+        self.selected_output_format = tk.StringVar(
+            value="png"
+        )
+
         self.status_text = tk.StringVar(
             value="Kies eerst de twee mappen en druk daarna op START."
         )
@@ -574,6 +640,37 @@ class ImageToolApp:
             ).pack(
                 anchor="w",
                 pady=6,
+            )
+
+        output_format_frame = ttk.Frame(
+            format_frame,
+            style="Card.TFrame",
+        )
+
+        output_format_frame.pack(
+            fill="x",
+            pady=(8, 0),
+        )
+
+        ttk.Label(
+            output_format_frame,
+            text="Uitvoerformaat:",
+            style="CardLabel.TLabel",
+        ).pack(
+            side="left",
+            padx=(4, 14),
+        )
+
+        for key, settings in OUTPUT_FORMATS.items():
+            ttk.Radiobutton(
+                output_format_frame,
+                text=settings["label"],
+                variable=self.selected_output_format,
+                value=key,
+                style="Card.TRadiobutton",
+            ).pack(
+                side="left",
+                padx=(0, 14),
             )
 
         folders_frame = ttk.LabelFrame(
@@ -897,6 +994,7 @@ class ImageToolApp:
                 input_path,
                 output_path,
                 self.selected_format.get(),
+                self.selected_output_format.get(),
             ),
             daemon=True,
         )
@@ -908,6 +1006,7 @@ class ImageToolApp:
         input_path: Path,
         output_path: Path,
         format_key: str,
+        output_format_key: str,
     ) -> None:
         """
         Verwerkt alle afbeeldingen in de inputmap.
@@ -990,7 +1089,10 @@ class ImageToolApp:
 
                     filename = output_filename(
                         path,
-                        str(settings["suffix"]),
+                        output_suffix(
+                            format_key,
+                            output_format_key,
+                        ),
                     )
 
                     destination = unique_destination(
@@ -998,11 +1100,10 @@ class ImageToolApp:
                         filename,
                     )
 
-                    output_image.save(
+                    save_output_image(
+                        output_image,
                         destination,
-                        format="PNG",
-                        optimize=True,
-                        compress_level=PNG_COMPRESSION,
+                        output_format_key,
                     )
 
                     ok_count += 1
@@ -1216,6 +1317,16 @@ def main() -> None:
     style.map(
         "Card.TRadiobutton",
         background=[("active", CARD_BACKGROUND)],
+    )
+    style.configure(
+        "Card.TFrame",
+        background=CARD_BACKGROUND,
+    )
+    style.configure(
+        "CardLabel.TLabel",
+        background=CARD_BACKGROUND,
+        foreground=HEADER_BACKGROUND,
+        font=("Segoe UI", 11, "bold"),
     )
     style.configure("TButton", padding=(10, 8))
     style.configure(
