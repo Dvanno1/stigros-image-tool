@@ -24,7 +24,7 @@ Het programma zoekt ook in onderliggende mappen. Als de gekozen uitvoermap binne
 - **500 × 500 pixels** is bedoeld voor wijn en gedistilleerd. Dit formaat is vierkant.
 - **332 × 424 pixels** is bedoeld voor bier. Dit formaat is hoger dan het breed is.
 
-De productfoto wordt nooit uitgerekt. Het programma houdt de oorspronkelijke verhouding intact en vult de overgebleven ruimte met wit.
+De productfoto wordt nooit uitgerekt. Het programma houdt de oorspronkelijke verhouding intact en vult de overgebleven ruimte met wit. Na het wegsnijden van lege randen gebruikt de langste begrenzende zijde van het product standaard ongeveer 94% van de beschikbare canvaszijde. Daardoor staan flessen groter en gelijkmatiger in beeld.
 
 ## Welk uitvoerformaat moet ik kiezen?
 
@@ -53,4 +53,6 @@ Als er een nieuwere versie is, vraagt het programma of de downloadpagina geopend
 
 De build gebruikt Python 3.11, PyInstaller en de vastgelegde versies uit `requirements.txt`. Start op GitHub de workflow handmatig via **Actions**, **Bouw Windows-programma**, **Run workflow**. De workflow draait op `windows-2022` en neemt de AVIF-ondersteuning en het Stigros-logo mee in één vensterprogramma zonder apart Python-venster.
 
-Verhoog voor iedere nieuwe publicatie eerst `APP_VERSION` bovenaan in `Automatische_bottles.py`. Gebruik daarna bij de handmatige workflow dezelfde versie met een `v` ervoor als Release-tag. Bij `APP_VERSION = "1.2.1"` hoort bijvoorbeeld Release-tag `v1.2.1`.
+Verhoog voor iedere nieuwe publicatie eerst `APP_VERSION` bovenaan in `Automatische_bottles.py`. Gebruik daarna bij de handmatige workflow dezelfde versie met een `v` ervoor als Release-tag. Bij `APP_VERSION = "1.3.0"` hoort bijvoorbeeld Release-tag `v1.3.0`.
+
+De schaalgrootte is centraal instelbaar met `TARGET_FILL` bovenaan in `Automatische_bottles.py`. De standaardwaarde `0.94` betekent dat het product maximaal 94% van de bruikbare breedte of hoogte inneemt.

@@ -7,6 +7,7 @@ from PIL import Image
 from Automatische_bottles import (
     FORMATS,
     OUTPUT_FORMATS,
+    TARGET_FILL,
     WHITE,
     fit_on_white_canvas,
     is_supported_image,
@@ -45,6 +46,35 @@ class OutputFormatTests(unittest.TestCase):
             "product_500x500.jpg",
         )
 
+    def test_product_uses_configured_canvas_fill(self) -> None:
+        source = Image.new("RGB", (100, 200), (0, 0, 0))
+
+        for product_key, product_settings in FORMATS.items():
+            with self.subTest(product=product_key):
+                width = int(product_settings["width"])
+                height = int(product_settings["height"])
+                processed = fit_on_white_canvas(
+                    source,
+                    width,
+                    height,
+                )
+                foreground = processed.point(
+                    lambda value: 255 if value < 243 else 0
+                ).getbbox()
+
+                self.assertIsNotNone(foreground)
+                assert foreground is not None
+                product_width = foreground[2] - foreground[0]
+                product_height = foreground[3] - foreground[1]
+
+                self.assertTrue(
+                    abs(product_width - round(width * TARGET_FILL)) <= 1
+                    or abs(
+                        product_height
+                        - round(height * TARGET_FILL)
+                    ) <= 1
+                )
+
     def test_saving_all_size_and_output_combinations(self) -> None:
         source = Image.new(
             "RGBA",
@@ -65,7 +95,6 @@ class OutputFormatTests(unittest.TestCase):
                             source,
                             int(product_settings["width"]),
                             int(product_settings["height"]),
-                            int(product_settings["margin"]),
                         )
                         destination = folder / (
                             "product"

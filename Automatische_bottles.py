@@ -26,7 +26,7 @@ except ImportError:
     AVIF_AVAILABLE = False
 
 
-APP_VERSION = "1.2.1"
+APP_VERSION = "1.3.0"
 GITHUB_RELEASE_API_URL = (
     "https://api.github.com/repos/"
     "Dvanno1/stigros-image-tool/releases/latest"
@@ -39,6 +39,7 @@ UPDATE_TIMEOUT_SECONDS = 4
 
 WHITE = (255, 255, 255)
 TOLERANCE = 12
+TARGET_FILL = 0.94
 PNG_COMPRESSION = 6
 JPG_QUALITY = 92
 
@@ -62,14 +63,12 @@ FORMATS = {
         "label": "Wijn / gedistilleerd — 500 × 500",
         "width": 500,
         "height": 500,
-        "margin": 55,
         "size_suffix": "_500x500",
     },
     "beer": {
         "label": "Bier — 332 × 424",
         "width": 332,
         "height": 424,
-        "margin": 35,
         "size_suffix": "_332x424",
     },
 }
@@ -442,13 +441,15 @@ def fit_on_white_canvas(
     image: Image.Image,
     canvas_width: int,
     canvas_height: int,
-    margin: int,
+    target_fill: float = TARGET_FILL,
 ) -> Image.Image:
     """
     Plaatst de afbeelding gecentreerd op een witte achtergrond.
 
-    De beeldverhouding blijft behouden, zodat het product
-    niet wordt uitgerekt.
+    De langste begrenzende zijde van het product gebruikt het
+    ingestelde deel van de bijbehorende canvaszijde. De
+    beeldverhouding blijft behouden, zodat het product niet wordt
+    uitgerekt.
     """
     prepared = prepare_image(image)
 
@@ -459,17 +460,23 @@ def fit_on_white_canvas(
             "De afbeelding is leeg na het uitsnijden."
         )
 
-    available_width = canvas_width - (2 * margin)
-    available_height = canvas_height - (2 * margin)
-
-    if available_width <= 0 or available_height <= 0:
+    if not 0 < target_fill <= 1:
         raise ValueError(
-            "De ingestelde marge is te groot."
+            "De doelvulling moet groter dan 0 en maximaal 1 zijn."
         )
 
+    usable_width = max(
+        1,
+        round(canvas_width * target_fill),
+    )
+    usable_height = max(
+        1,
+        round(canvas_height * target_fill),
+    )
+
     scale = min(
-        available_width / width,
-        available_height / height,
+        usable_width / width,
+        usable_height / height,
     )
 
     new_width = max(
@@ -1234,9 +1241,6 @@ class ImageToolApp:
                             ),
                             canvas_height=int(
                                 settings["height"]
-                            ),
-                            margin=int(
-                                settings["margin"]
                             ),
                         )
 
