@@ -35,14 +35,11 @@ De bestandsnaam bevat altijd de gekozen afmetingen en extensie, bijvoorbeeld `pr
 
 ## De Windows-versie downloaden
 
-De Windows-versie wordt automatisch gebouwd met GitHub Actions voor 64-bits Windows 10 en Windows 11.
+De Windows-versie wordt automatisch gebouwd met GitHub Actions voor 64-bits Windows 10 en Windows 11. Na iedere geslaagde build op `main` wordt de nieuwste openbare GitHub Release aangemaakt of bijgewerkt.
 
-1. Open deze repository op GitHub.
-2. Klik bovenaan op **Actions**.
-3. Open de meest recente geslaagde uitvoering van **Bouw Windows-programma**.
-4. Ga onderaan naar **Artifacts**.
-5. Download **Stigros-Afbeeldingen-Windows-64-bit**.
-6. Pak het gedownloade zipbestand uit en open `Stigros-Afbeeldingen.exe`.
+1. Open de pagina met de [nieuwste GitHub Release](https://github.com/Dvanno1/stigros-image-tool/releases/latest).
+2. Klik onder **Assets** rechtstreeks op `Stigros-Afbeeldingen.exe`.
+3. Open het gedownloade programma. Hiervoor is geen GitHub-account nodig.
 
 Windows SmartScreen kan waarschuwen dat het programma van een onbekende uitgever komt. Dat gebeurt omdat het `.exe`-bestand niet digitaal is ondertekend. Controleer dat het bestand uit de GitHub Actions-build van deze repository komt. Kies daarna zo nodig **Meer informatie** en **Toch uitvoeren**.
 
