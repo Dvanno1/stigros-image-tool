@@ -48,6 +48,8 @@ jobs:
           --onefile
           --windowed
           --name Stigros-Afbeeldingen
+          --icon assets/stigros_logo.ico
+          --add-data "stigros_logo.png:."
           --collect-all pillow_avif
           Automatische_bottles.py
 

@@ -253,6 +253,45 @@ def fetch_latest_release_version() -> str | None:
     return tag_name if isinstance(tag_name, str) else None
 
 
+def bundled_resource_path(
+    relative_path: str,
+) -> Path:
+    """
+    Vindt een meegeleverd bestand in de bronmap of in een uitgepakte
+    PyInstaller --onefile-bundel.
+    """
+    bundle_folder = Path(
+        getattr(
+            sys,
+            "_MEIPASS",
+            Path(__file__).resolve().parent,
+        )
+    )
+
+    return bundle_folder / relative_path
+
+
+def set_window_icon(root: tk.Tk) -> None:
+    """
+    Gebruikt het Stigros-logo als venstericoon als het beschikbaar is.
+    """
+    try:
+        icon = tk.PhotoImage(
+            file=str(
+                bundled_resource_path(
+                    "stigros_logo.png"
+                )
+            )
+        )
+        root.iconphoto(True, icon)
+
+        # Bewaar een verwijzing zolang het venster bestaat.
+        root.stigros_icon = icon  # type: ignore[attr-defined]
+    except (OSError, tk.TclError):
+        # Een ontbrekend icoon mag de hoofdfunctionaliteit nooit blokkeren.
+        pass
+
+
 def unique_destination(
     output_folder: Path,
     filename: str,
@@ -1251,6 +1290,7 @@ class ImageToolApp:
 
 def main() -> None:
     root = tk.Tk()
+    set_window_icon(root)
     root.configure(
         background=APP_BACKGROUND
     )

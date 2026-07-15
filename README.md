@@ -54,6 +54,6 @@ Als er een nieuwere versie is, vraagt het programma of de downloadpagina geopend
 
 ## Zelf bouwen
 
-De build gebruikt Python 3.11, PyInstaller en de vastgelegde versies uit `requirements.txt`. Start op GitHub de workflow handmatig via **Actions**, **Bouw Windows-programma**, **Run workflow**. De workflow draait op `windows-2022` en neemt de AVIF-ondersteuning mee in één vensterprogramma zonder apart Python-venster.
+De build gebruikt Python 3.11, PyInstaller en de vastgelegde versies uit `requirements.txt`. Start op GitHub de workflow handmatig via **Actions**, **Bouw Windows-programma**, **Run workflow**. De workflow draait op `windows-2022` en neemt de AVIF-ondersteuning en het Stigros-logo mee in één vensterprogramma zonder apart Python-venster.
 
 Verhoog voor iedere nieuwe publicatie eerst `APP_VERSION` bovenaan in `Automatische_bottles.py`. Gebruik daarna bij de handmatige workflow dezelfde versie met een `v` ervoor als Release-tag. Bij `APP_VERSION = "1.1.0"` hoort bijvoorbeeld Release-tag `v1.1.0`.
