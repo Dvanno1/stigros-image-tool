@@ -26,7 +26,7 @@ except ImportError:
     AVIF_AVAILABLE = False
 
 
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.2.1"
 GITHUB_RELEASE_API_URL = (
     "https://api.github.com/repos/"
     "Dvanno1/stigros-image-tool/releases/latest"
@@ -91,6 +91,7 @@ SUPPORTED_EXTENSIONS = {
     ".png",
     ".jpg",
     ".jpeg",
+    ".jfif",
     ".webp",
     ".gif",
     ".tif",

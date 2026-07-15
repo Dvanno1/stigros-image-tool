@@ -2,7 +2,7 @@
 
 Dit programma maakt productafbeeldingen automatisch passend voor de website. De originele foto's blijven ongewijzigd. De nieuwe afbeeldingen worden als PNG- of JPG-bestand opgeslagen, met de juiste beeldverhouding en een witte achtergrond.
 
-Het programma ondersteunt JPG, JPEG, PNG, WebP en AVIF. Een beschadigd bestand wordt overgeslagen; de andere afbeeldingen worden gewoon verder verwerkt.
+Het programma ondersteunt JPG, JPEG, JFIF, PNG, WebP en AVIF. Een beschadigd bestand wordt overgeslagen; de andere afbeeldingen worden gewoon verder verwerkt.
 
 ## Het programma gebruiken
 
@@ -53,4 +53,4 @@ Als er een nieuwere versie is, vraagt het programma of de downloadpagina geopend
 
 De build gebruikt Python 3.11, PyInstaller en de vastgelegde versies uit `requirements.txt`. Start op GitHub de workflow handmatig via **Actions**, **Bouw Windows-programma**, **Run workflow**. De workflow draait op `windows-2022` en neemt de AVIF-ondersteuning en het Stigros-logo mee in één vensterprogramma zonder apart Python-venster.
 
-Verhoog voor iedere nieuwe publicatie eerst `APP_VERSION` bovenaan in `Automatische_bottles.py`. Gebruik daarna bij de handmatige workflow dezelfde versie met een `v` ervoor als Release-tag. Bij `APP_VERSION = "1.2.0"` hoort bijvoorbeeld Release-tag `v1.2.0`.
+Verhoog voor iedere nieuwe publicatie eerst `APP_VERSION` bovenaan in `Automatische_bottles.py`. Gebruik daarna bij de handmatige workflow dezelfde versie met een `v` ervoor als Release-tag. Bij `APP_VERSION = "1.2.1"` hoort bijvoorbeeld Release-tag `v1.2.1`.

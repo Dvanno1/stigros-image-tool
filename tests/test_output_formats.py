@@ -9,6 +9,7 @@ from Automatische_bottles import (
     OUTPUT_FORMATS,
     WHITE,
     fit_on_white_canvas,
+    is_supported_image,
     output_filename,
     output_suffix,
     save_output_image,
@@ -16,6 +17,16 @@ from Automatische_bottles import (
 
 
 class OutputFormatTests(unittest.TestCase):
+    def test_jfif_is_supported_as_input(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_folder:
+            source = Path(temporary_folder) / "product.JFIF"
+            Image.new("RGB", (10, 10), WHITE).save(
+                source,
+                format="JPEG",
+            )
+
+            self.assertTrue(is_supported_image(source))
+
     def test_output_filename_extensions(self) -> None:
         source = Path("product.avif")
 
